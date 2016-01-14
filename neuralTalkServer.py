@@ -1,12 +1,13 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+import os
 import logging
 import cgi
 import cv2
 import commands
 import re
 
-# Web serer class.
 class HTTPRequestHandler(BaseHTTPRequestHandler):
+
     def do_GET(self):
         response_body = 'I got an illegal access.\n'
         self.send_response(200)
@@ -29,9 +30,23 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             response_body = "no file given\n"
         else:
             # save image file to target directry.
-            cmd = commands.getoutput("th eval.lua -model /home/kiyomaru/model_id1-501-1448236541.t7_cpu.t7 -image_folder ./target/ -num_images 1 -gpuid -1")
+            item = form["file"]
+            if item.file:
+                fout = file(os.path.join('./target/', item.filename), 'wb')
+                buffersize = 1000000
+                while True:
+                    chunk = item.file.read(buffersize)
+                    if not chunk:
+                        break
+                    fout.write(chunk)
+                    fout.close()
+
+            # execute neuraltalk
+            neuraltalk = commands.getoutput("th eval.lua -model /home/kiyomaru/model_id1-501-1448236541.t7_cpu.t7 -image_folder ./target/ -num_images 1 -gpuid -1")
+
+            # extract result
             pattern = "\[.+?\]"
-            response_body = re.search(pattern, cmd).group(0)[1:-1]
+            response_body = re.search(pattern, neuraltalk).group(0)[1:-1]
             
         self.send_response(200)
         self.send_header('Content-type', 'text/xml; charset=UTF-8')
