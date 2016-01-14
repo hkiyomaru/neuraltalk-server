@@ -147,7 +147,7 @@ local function eval_split(split, evalopt)
         os.execute(cmd) -- dont think there is cleaner way in Lua
       end
       if verbose then
-        print(string.format('image %s: %s', entry.image_id, entry.caption))
+        print(string.format('image %s: [%s]', entry.image_id, entry.caption))
       end
     end
 
