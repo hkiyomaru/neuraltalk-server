@@ -1,0 +1,9 @@
+*~
+coco/
+coco-caption/
+model/
+.ipynb_checkpoints/
+vis/imgs/
+vis/vis.json
+testimages/
+checkpoints/
