@@ -42,7 +42,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     fout.close()
 
             # execute neuraltalk
-            neuraltalk = commands.getoutput("th eval.lua -model /home/kiyomaru/model_id1-501-1448236541.t7_cpu.t7 -image_folder ./target/ -num_images 1 -gpuid -1")
+            neuraltalk = commands.getoutput("th eval.lua -model /path/to/model -image_folder /target -num_images 1 ")
 
             # extract result
             pattern = "\[.+?\]"
