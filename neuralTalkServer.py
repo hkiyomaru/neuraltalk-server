@@ -1,15 +1,14 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-import os
 import logging
+import cgi
+import cv2
+import commands
+import re
 
-# Dummy Web serer class.
+# Web serer class.
 class HTTPRequestHandler(BaseHTTPRequestHandler):
-
     def do_GET(self):
-        # f = open("get_response.json")
-        # response_body = f.read()
-        response_body = 'I got get request!'
-
+        response_body = 'I got an illegal access.\n'
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=UTF-8')
         self.send_header('Content-length', len(response_body))
@@ -19,10 +18,21 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         logging.info('[Request headers]\n' + str(self.headers))
 
     def do_POST(self):
-        #f = open("post_response.json")
-        #response_body = f.read()
-        response_body = 'I got post request!'
-
+        form = cgi.FieldStorage(
+            fp = self.rfile,
+            headers = self.headers,
+            environ = {'REQUEST_METHOD':'POST',
+                       'CONTENT_TYPE':self.headers['Content-Type'],
+                   })
+        
+        if not form.has_key("file"):
+            response_body = "no file given\n"
+        else:
+            # save image file to target directry.
+            cmd = commands.getoutput("th eval.lua -model /home/kiyomaru/model_id1-501-1448236541.t7_cpu.t7 -image_folder ./target/ -num_images 1 -gpuid -1")
+            pattern = "\[.+?\]"
+            response_body = re.search(pattern, cmd).group(0)[1:-1]
+            
         self.send_response(200)
         self.send_header('Content-type', 'text/xml; charset=UTF-8')
         self.send_header('Content-length', len(response_body))
