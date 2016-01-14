@@ -5,6 +5,7 @@ import cgi
 import cv2
 import commands
 import re
+import sys
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
 
@@ -32,7 +33,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             # save image file to target directry.
             item = form["file"]
             if item.file:
-                fout = file(os.path.join('./target/', item.filename), 'wb')
+                fout = file(os.path.join('./target', item.filename), 'wb')
                 buffersize = 1000000
                 while True:
                     chunk = item.file.read(buffersize)
@@ -42,7 +43,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     fout.close()
 
             # execute neuraltalk
-            neuraltalk = commands.getoutput("th eval.lua -model /path/to/model -image_folder /target -num_images 1 ")
+            # if you only have cpu, add option "-gpuid -1"
+            neuraltalk = commands.getoutput("th eval.lua -model /path/to/model -image_folder ./target/ -num_images 1")
 
             # extract result
             pattern = "\[.+?\]"
@@ -61,18 +63,23 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         logging.info('[Request doby]\n' + post_body)
 
 
-# Start the server.
-script_dir = './log'
-logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
+def main():
+    # Start the server.
+    script_dir = './log'
+    logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-host = 'localhost'
-port = 8000
-httpd = HTTPServer((host, port), HTTPRequestHandler)
+    host = 'localhost'
+    port = 8000
+    httpd = HTTPServer((host, port), HTTPRequestHandler)
 
-logging.info('Server Starting...')
-logging.info('Listening at port :%d', port)
+    logging.info('Server Starting...')
+    logging.info('Listening at port :%d', port)
 
-try:
-    httpd.serve_forever()
-except:
-    logging.info('Server Stopped')
+    try:
+        httpd.serve_forever()
+    except:
+        logging.info('Server Stopped')
+
+
+if __name__ == '__main__':
+    sys.exit(main())
