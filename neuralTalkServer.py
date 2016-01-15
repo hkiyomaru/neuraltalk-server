@@ -46,6 +46,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             # if you only have cpu, add option "-gpuid -1"
             neuraltalk = commands.getoutput("th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1")
 
+            #clean up target directry
+            os.remove("./target/"+item.filename)
+
             # extract result
             pattern = "\[.+?\]"
             response_body = re.search(pattern, neuraltalk).group(0)[1:-1]
