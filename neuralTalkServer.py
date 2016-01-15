@@ -44,7 +44,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
             # execute neuraltalk
             # if you only have cpu, add option "-gpuid -1"
-            neuraltalk = commands.getoutput("th eval.lua -model /path/to/model -image_folder ./target/ -num_images 1")
+            neuraltalk = commands.getoutput("th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1")
 
             # extract result
             pattern = "\[.+?\]"
