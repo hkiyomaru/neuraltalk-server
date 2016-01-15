@@ -13,7 +13,7 @@ $ git clone https://github.com/kiyomaro927/NeuraltalkServer.git
 
 ```
 
-Download the pretrained checkpoint.
+Download the pretrained checkpoint to model directory.
 
 This is [pretrained checkpoint link](http://cs.stanford.edu/people/karpathy/neuraltalk2/checkpoint_v1.zip)
 If you only have cpu, download the [cpu model checkpoint](http://cs.stanford.edu/people/karpathy/neuraltalk2/checkpoint_v1_cpu.zip)
