@@ -2,15 +2,14 @@ from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import os
 import logging
 import cgi
-import cv2
 import commands
 import re
 import sys
 
-class HTTPRequestHandler(BaseHTTPRequestHandler):
 
+class HTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        response_body = 'I got an illegal access.\n'
+        response_body = 'Get Request is not available.\n'
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=UTF-8')
         self.send_header('Content-length', len(response_body))
@@ -28,23 +27,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                    })
         
         if not form.has_key("file"):
-            response_body = "no file given\n"
+            response_body = "Give image file with -file option.\n"
         else:
             # save image file to target directry.
             item = form["file"]
             if item.file:
                 fout = file(os.path.join('./target', item.filename), 'wb')
-                buffersize = 1000000
                 while True:
-                    chunk = item.file.read(buffersize)
+                    chunk = item.file.read(1000000)
                     if not chunk:
                         break
                     fout.write(chunk)
                     fout.close()
 
             # execute neuraltalk
-            # if you only have cpu, add option "-gpuid -1"
-            neuraltalk = commands.getoutput("th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1")
+            # if you only have cpu, add option "-gpuid -1" to the below command.
+            cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
+            # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
+            neuraltalk = commands.getoutput(cmd)
 
             #clean up target directry
             os.remove("./target/"+item.filename)
@@ -71,11 +71,14 @@ def main():
     script_dir = './log'
     logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-    host = 'localhost'
+    host = 'localhost' # Replace 'localhost' with your IP address
     port = 8000
     httpd = HTTPServer((host, port), HTTPRequestHandler)
-
+    
+    
+    print 'Server Starting...'
     logging.info('Server Starting...')
+    print 'Listening at port :', port
     logging.info('Listening at port :%d', port)
 
     try:
