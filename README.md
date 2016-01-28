@@ -61,11 +61,29 @@ Download this repository.
 $ git clone https://github.com/kiyomaro927/NeuraltalkServer.git
 ```
 
+I tweaked eval.lua, so you have to install luasocket.
+
+
+```
+luarocks install luasocket
+```
+
+This package supports Lua5.1 only.
+
+So, if your Lua version is not 5.1, please match the Lua version.
+
+If you use Ubuntu, this install is very simple.
+
+```
+sudo apt-get install lua5.1
+```
+
 Download the pretrained checkpoint to model directory.
 
 This is [pretrained checkpoint link](http://cs.stanford.edu/people/karpathy/neuraltalk2/checkpoint_v1.zip)
 
 __If you only have cpu__, download the [cpu model checkpoint](http://cs.stanford.edu/people/karpathy/neuraltalk2/checkpoint_v1_cpu.zip)
+
 
 
 ## Run the local server
@@ -81,4 +99,3 @@ $ python neuralTalkServer.py
 ```
 $ curl -F "file=@path/to/img" localhost:8000
 ```
-
