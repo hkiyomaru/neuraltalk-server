@@ -79,7 +79,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         post_body = self.rfile.read(content_len)
         logging.info('[Request doby]\n' + post_body)
 
-
 def main():
     # Global scope
     global pid
@@ -89,8 +88,8 @@ def main():
 
     # Start neuraltalk server
     # If you only have cpu, add option "-gpuid -1" to the below command.
-    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
-    cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
+    cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
+    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
     p = subprocess.Popen(cmd, shell=True)
     pid = p.pid
 
