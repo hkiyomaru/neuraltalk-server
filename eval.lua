@@ -1,6 +1,7 @@
 require 'torch'
 require 'nn'
 require 'nngraph'
+require 'socket'
 -- exotics
 require 'loadcaffe'
 -- local imports
@@ -78,16 +79,6 @@ end
 local vocab = checkpoint.vocab -- ix -> word mapping
 
 -------------------------------------------------------------------------------
--- Create the Data Loader instance
--------------------------------------------------------------------------------
-local loader
-if string.len(opt.image_folder) == 0 then
-  loader = DataLoader{h5_file = opt.input_h5, json_file = opt.input_json}
-else
-  loader = DataLoaderRaw{folder_path = opt.image_folder, coco_json = opt.coco_json}
-end
-
--------------------------------------------------------------------------------
 -- Load the networks from model checkpoint
 -------------------------------------------------------------------------------
 local protos = checkpoint.protos
@@ -97,7 +88,14 @@ protos.lm:createClones() -- reconstruct clones inside the language model
 if opt.gpuid >= 0 then for k,v in pairs(protos) do v:cuda() end end
 
 -------------------------------------------------------------------------------
--- Evaluation fun(ction)
+-- Create the Data Loader instance
+-------------------------------------------------------------------------------
+local loader
+
+print("Initializing complete.")
+
+-------------------------------------------------------------------------------
+-- Evaluation function
 -------------------------------------------------------------------------------
 local function eval_split(split, evalopt)
   local verbose = utils.getopt(evalopt, 'verbose', true)
@@ -105,7 +103,6 @@ local function eval_split(split, evalopt)
 
   protos.cnn:evaluate()
   protos.lm:evaluate()
-  loader:resetIterator(split) -- rewind iteator back to first datapoint in the split
   local n = 0
   local loss_sum = 0
   local loss_evals = 0
@@ -136,18 +133,18 @@ local function eval_split(split, evalopt)
     local sents = net_utils.decode_sequence(vocab, seq)
     for k=1,#sents do
       local entry = {image_id = data.infos[k].id, caption = sents[k]}
-      if opt.dump_path == 1 then
-        entry.file_name = data.infos[k].file_path
-      end
+      -- if opt.dump_path == 1 then
+      --   entry.file_name = data.infos[k].file_path
+      -- end
       table.insert(predictions, entry)
-      if opt.dump_images == 1 then
-        -- dump the raw image to vis/ folder
-        local cmd = 'cp "' .. path.join(opt.image_root, data.infos[k].file_path) .. '" vis/imgs/img' .. #predictions .. '.jpg' -- bit gross
-        print(cmd)
-        os.execute(cmd) -- dont think there is cleaner way in Lua
-      end
+      -- if opt.dump_images == 1 then
+      --   -- dump the raw image to vis/ folder
+      --   local cmd = 'cp "' .. path.join(opt.image_root, data.infos[k].file_path) .. '" vis/imgs/img' .. #predictions .. '.jpg' -- bit gross
+      --   print(cmd)
+      --   os.execute(cmd) -- dont think there is cleaner way in Lua
+      -- end
       if verbose then
-        print(string.format('image %s: [%s]', entry.image_id, entry.caption))
+        print(string.format('image %s: [%s]', entry.image_id, entry.caption)) --edited
       end
     end
 
@@ -170,13 +167,46 @@ local function eval_split(split, evalopt)
   return loss_sum/loss_evals, predictions, lang_stats
 end
 
-local loss, split_predictions, lang_stats = eval_split(opt.split, {num_images = opt.num_images})
-print('loss: ', loss)
-if lang_stats then
-  print(lang_stats)
+
+-------------------------------------------------------------------------------
+-- Create socket
+-------------------------------------------------------------------------------
+hostname = "localhost"
+port = 8888
+local server = socket.bind(hostname, port)
+assert(server)
+print("Server starting...")
+print("Listening port at : " .. port)
+
+while 1 do
+  -------------------------------------------------------------------------------
+  -- Wait request
+  -------------------------------------------------------------------------------
+  local sock = server:accept()
+  assert(sock)
+  sock:settimeout(1000)
+  local line, err = sock:receive()
+
+  if string.len(opt.image_folder) == 0 then
+    loader = DataLoader{h5_file = opt.input_h5, json_file = opt.input_json}
+  else
+    loader = DataLoaderRaw{folder_path = opt.image_folder, coco_json = opt.coco_json}
+  end
+
+  -------------------------------------------------------------------------------
+  -- Execute evaluation
+  -------------------------------------------------------------------------------
+  local loss, split_predictions, lang_stats = eval_split(opt.split, {num_images = opt.num_images})
+  -- print(string.format("%s is caption!\n", split_predictions[1]["caption"]))
+  sock:send(split_predictions[1]["caption"] .. "\n")
+  sock:close()
+  -- print('loss: ', loss)
+  -- if lang_stats then
+  --  print(lang_stats)
+  -- end
 end
 
-if opt.dump_json == 1 then
-  -- dump the json
-  utils.write_json('vis/vis.json', split_predictions)
-end
+-- if opt.dump_json == 1 then
+--   -- dump the json
+--   utils.write_json('vis/vis.json', split_predictions)
+-- end

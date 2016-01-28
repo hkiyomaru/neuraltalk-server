@@ -2,9 +2,10 @@ from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import os
 import logging
 import cgi
-import commands
 import re
 import sys
+import commands
+import subprocess
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -29,6 +30,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         if not form.has_key("file"):
             response_body = "Give image file with -file option.\n"
         else:
+            #clean up target directry
+            target_dir = "./target/"
+            file_list = os.listdir(target_dir)
+            for filename in file_list:
+                try:
+                    if os.path.isfile(os.path.join(target_dir, filename)) and filename != '.gitkeep':
+                        os.remove(os.path.join(target_dir, filename))
+                except:
+                    pass
             # save image file to target directry.
             item = form["file"]
             if item.file:
@@ -40,19 +50,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     fout.write(chunk)
                     fout.close()
 
-            # execute neuraltalk
-            # if you only have cpu, add option "-gpuid -1" to the below command.
-            cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
-            # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
-            neuraltalk = commands.getoutput(cmd)
-
-            #clean up target directry
-            os.remove("./target/"+item.filename)
+            cmd = ('curl localhost:8888')
+            caption = commands.getoutput(cmd).split("\n")[3] #avoid header
 
             # extract result
-            pattern = "\[.+?\]"
-            response_body = re.search(pattern, neuraltalk).group(0)[1:-1]
-            
+            # pattern = "\[.+?\]"
+            # response_body = re.search(pattern, neuraltalk).group(0)[1:-1]
+            response_body = caption
+
+
         self.send_response(200)
         self.send_header('Content-type', 'text/xml; charset=UTF-8')
         self.send_header('Content-length', len(response_body))
@@ -67,14 +73,19 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def main():
+    # start neuraltalk server
+    # if you only have cpu, add option "-gpuid -1" to the below command.
+    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
+    cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
+    subprocess.Popen(cmd, shell=True)
+    
     # Start the server.
     script_dir = './log'
     logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-    host = 'localhost' # Replace 'localhost' with your IP address
+    host = '127.0.0.1' # Replace 'localhost' with your IP address
     port = 8000
     httpd = HTTPServer((host, port), HTTPRequestHandler)
-    
     
     print 'Server Starting...'
     logging.info('Server Starting...')
@@ -85,7 +96,6 @@ def main():
         httpd.serve_forever()
     except:
         logging.info('Server Stopped')
-
 
 if __name__ == '__main__':
     sys.exit(main())
