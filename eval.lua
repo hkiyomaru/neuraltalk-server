@@ -26,9 +26,6 @@ cmd:option('-model','','path to model to evaluate')
 cmd:option('-batch_size', 1, 'if > 0 then overrule, otherwise load from checkpoint.')
 cmd:option('-num_images', 100, 'how many images to use when periodically evaluating the loss? (-1 = all)')
 cmd:option('-language_eval', 0, 'Evaluate language as well (1 = yes, 0 = no)? BLEU/CIDEr/METEOR/ROUGE_L? requires coco-caption code from Github.')
-cmd:option('-dump_images', 1, 'Dump images into vis/imgs folder for vis? (1=yes,0=no)')
-cmd:option('-dump_json', 1, 'Dump json with predictions into vis folder? (1=yes,0=no)')
-cmd:option('-dump_path', 0, 'Write image paths along with predictions into vis json? (1=yes,0=no)')
 -- Sampling options
 cmd:option('-sample_max', 1, '1 = sample argmax words. 0 = sample from distributions.')
 cmd:option('-beam_size', 2, 'used when sample_max = 1, indicates number of beams in beam search. Usually 2 or 3 works well. More is not better. Set this to 1 for faster runtime but a bit worse performance.')
@@ -133,16 +130,7 @@ local function eval_split(split, evalopt)
     local sents = net_utils.decode_sequence(vocab, seq)
     for k=1,#sents do
       local entry = {image_id = data.infos[k].id, caption = sents[k]}
-      -- if opt.dump_path == 1 then
-      --   entry.file_name = data.infos[k].file_path
-      -- end
       table.insert(predictions, entry)
-      -- if opt.dump_images == 1 then
-      --   -- dump the raw image to vis/ folder
-      --   local cmd = 'cp "' .. path.join(opt.image_root, data.infos[k].file_path) .. '" vis/imgs/img' .. #predictions .. '.jpg' -- bit gross
-      --   print(cmd)
-      --   os.execute(cmd) -- dont think there is cleaner way in Lua
-      -- end
       if verbose then
         print(string.format('image %s: [%s]', entry.image_id, entry.caption)) --edited
       end
@@ -197,16 +185,6 @@ while 1 do
   -- Execute evaluation
   -------------------------------------------------------------------------------
   local loss, split_predictions, lang_stats = eval_split(opt.split, {num_images = opt.num_images})
-  -- print(string.format("%s is caption!\n", split_predictions[1]["caption"]))
   sock:send(split_predictions[1]["caption"] .. "\n")
   sock:close()
-  -- print('loss: ', loss)
-  -- if lang_stats then
-  --  print(lang_stats)
-  -- end
 end
-
--- if opt.dump_json == 1 then
---   -- dump the json
---   utils.write_json('vis/vis.json', split_predictions)
--- end

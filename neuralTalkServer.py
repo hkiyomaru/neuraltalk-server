@@ -4,8 +4,20 @@ import logging
 import cgi
 import re
 import sys
+import signal
 import commands
 import subprocess
+
+
+pid = -1 #neuraltalk server's process id
+
+# signal handling
+def handler(num, p):
+    print 'kill subprocess...'
+    if pid > 0:
+        os.kill(pid, signal.SIGKILL)
+        os.kill(pid+1, signal.SIGKILL)
+    exit(0)
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -52,10 +64,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
             cmd = ('curl localhost:8888')
             caption = commands.getoutput(cmd).split("\n")[3] #avoid header
-
-            # extract result
-            # pattern = "\[.+?\]"
-            # response_body = re.search(pattern, neuraltalk).group(0)[1:-1]
             response_body = caption
 
 
@@ -71,19 +79,25 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         post_body = self.rfile.read(content_len)
         logging.info('[Request doby]\n' + post_body)
 
-
 def main():
-    # start neuraltalk server
-    # if you only have cpu, add option "-gpuid -1" to the below command.
-    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
-    cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
-    subprocess.Popen(cmd, shell=True)
-    
+    # Global scope
+    global pid
+
+    # Set signal handler
+    signal.signal(signal.SIGINT, handler)
+
+    # Start neuraltalk server
+    # If you only have cpu, add option "-gpuid -1" to the below command.
+    cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
+    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
+    p = subprocess.Popen(cmd, shell=True)
+    pid = p.pid
+
     # Start the server.
     script_dir = './log'
     logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-    host = '127.0.0.1' # Replace 'localhost' with your IP address
+    host = 'localhost' # Replace 'localhost' with your IP address
     port = 8000
     httpd = HTTPServer((host, port), HTTPRequestHandler)
     
