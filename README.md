@@ -89,17 +89,13 @@ __If you only have cpu__, download the [cpu model checkpoint](http://cs.stanford
 ## Run the local server
 
 ```
-
 $ python neuralTalkServer.py
-
 ```
 
 If you'd like to run without using GPU,
 
 ```
-
 $ python neuralTalkServer.py -cpu
-
 ```
 
 
