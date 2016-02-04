@@ -94,6 +94,15 @@ $ python neuralTalkServer.py
 
 ```
 
+If you'd like to run without using GPU,
+
+```
+
+$ python neuralTalkServer.py -cpu
+
+```
+
+
 ## Check operation
 
 ```
