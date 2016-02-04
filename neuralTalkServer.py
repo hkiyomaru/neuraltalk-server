@@ -13,12 +13,11 @@ pid = -1 #neuraltalk server's process id
 
 # signal handling
 def handler(num, p):
-    print 'kill subprocess...'
+    print 'killing subprocess...'
     if pid > 0:
-        os.kill(pid, signal.SIGKILL)
-        os.kill(pid+1, signal.SIGKILL)
+        os.kill(pid, signal.SIGINT)
+        os.kill(pid+1, signal.SIGINT) #this is bad coding...
     exit(0)
-
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
