@@ -81,14 +81,16 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 def main():
     # Global scope
     global pid
+    argv = sys.argv    
 
     # Set signal handler
     signal.signal(signal.SIGINT, handler)
 
     # Start neuraltalk server
-    # If you only have cpu, add option "-gpuid -1" to the below command.
     cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
-    # cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1 -gpuid -1" # use cpu only
+    if "-cpu" in argv:
+        cmd += " -gpuid -1"
+
     p = subprocess.Popen(cmd, shell=True)
     pid = p.pid
 
