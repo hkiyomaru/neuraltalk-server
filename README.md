@@ -50,6 +50,12 @@ Then set your LD_LIBRARY_PATH to point to the lib64 folder that contains the lib
 
 Then git clone the ```cudnn.torch``` repo, ```cd inside```, and do ```luarocks make cudnn-scm-1.rockspec```.
 
+At this time, __if you have cudnn4.0, you need the cudnn.torch r4 bindings.__
+
+```
+git clone https://github.com/soumith/cudnn.torch -b R4
+```
+
 If you'd like to know details of the instllation, click [this link(original page)](https://github.com/karpathy/neuraltalk2).
 
 
