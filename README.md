@@ -50,6 +50,12 @@ Then set your LD_LIBRARY_PATH to point to the lib64 folder that contains the lib
 
 Then git clone the ```cudnn.torch``` repo, ```cd inside```, and do ```luarocks make cudnn-scm-1.rockspec```.
 
+At this time, __if you have cudnn4.0, you need the cudnn.torch r4 bindings.__
+
+```
+git clone https://github.com/soumith/cudnn.torch -b R4
+```
+
 If you'd like to know details of the instllation, click [this link(original page)](https://github.com/karpathy/neuraltalk2).
 
 
@@ -89,17 +95,13 @@ __If you only have cpu__, download the [cpu model checkpoint](http://cs.stanford
 ## Run the local server
 
 ```
-
 $ python neuralTalkServer.py
-
 ```
 
 If you'd like to run without using GPU,
 
 ```
-
 $ python neuralTalkServer.py -cpu
-
 ```
 
 
