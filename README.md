@@ -101,7 +101,13 @@ $ python neuralTalkServer.py
 If you'd like to run without using GPU,
 
 ```
-$ python neuralTalkServer.py -cpu
+$ python neuralTalkServer.py -gpuid -1
+```
+
+And if you would not like to run this program at localhost,
+
+```
+$ python neuralTalkServer.py -host YOUR_IP_ADDRESS
 ```
 
 
