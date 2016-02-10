@@ -6,6 +6,7 @@ import re
 import sys
 import signal
 import commands
+import argparse
 import subprocess
 
 
@@ -79,16 +80,20 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         logging.info('[Request doby]\n' + post_body)
 
 def main():
-    # Global scope
+    # Global variables
     global pid
-    argv = sys.argv    
+    
+    # Local variables
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-host', action='store',dest='hostip',default='localhost')
+    parser.add_argument('-gpuid', action='store', dest='id', default=1, type=int)
 
     # Set signal handler
     signal.signal(signal.SIGINT, handler)
 
     # Start neuraltalk server
     cmd = "th eval.lua -model ./model/model* -image_folder ./target/ -num_images 1"
-    if "-cpu" in argv:
+    if parser.parse_args().id == -1:
         cmd += " -gpuid -1"
 
     p = subprocess.Popen(cmd, shell=True)
@@ -98,7 +103,7 @@ def main():
     script_dir = './log'
     logging.basicConfig(filename=script_dir + '/server.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-    host = 'localhost' # Replace 'localhost' with your IP address
+    host = parser.parse_args().hostip
     port = 8000
     httpd = HTTPServer((host, port), HTTPRequestHandler)
     
