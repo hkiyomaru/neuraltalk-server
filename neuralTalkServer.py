@@ -16,8 +16,10 @@ pid = -1 #neuraltalk server's process id
 def handler(num, p):
     print 'killing subprocess...'
     if pid > 0:
-        os.kill(pid, signal.SIGINT)
-        os.kill(pid+1, signal.SIGINT) #this is bad coding...
+        cmd = 'ps a | grep eval.lua'
+        subprocess = commands.getoutput(cmd).split("\n")
+        for p in subprocess:
+            os.kill(int(p.split(" ")[0]), signal.SIGINT)
     exit(0)
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
